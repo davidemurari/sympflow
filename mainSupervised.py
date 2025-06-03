@@ -177,8 +177,8 @@ else:
             f"supervisedNetworks/savedModels/{ode_name}/sympflow/trained_model_{timestamp}.pt",
         )
 
-if not os.path.isfile("supervisedNetworks/timings.txt"):
-        open("supervisedNetworks/timings.txt", "w").close()
-with open("supervisedNetworks/timings.txt", "a") as myfile:
+if not os.path.isfile("supervisedNetworks/timingsTrainingPerEpoch.txt"):
+        open("supervisedNetworks/timingsTrainingPerEpoch.txt", "w").close()
+with open("supervisedNetworks/timingsTrainingPerEpoch.txt", "a") as myfile:
     text = f"{timestamp}, {ode_name}, {name_experiment}, num_epochs={args.epochs}: {model.training_time}\n"
     myfile.write(text)

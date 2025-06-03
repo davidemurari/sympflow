@@ -131,7 +131,20 @@ if __name__ == "__main__":
                 print("Model loaded correctly")
                 print("Generating the solutions")
                 q0,pi0,tf,dtype,device = system_parameters['q0'], system_parameters['pi0'], training_parameters['tf'], training_parameters['dtype'], training_parameters['device']
-                vec,t_eval,sol_scipy,sol_slimplectic,sol_network = generate_solutions(vec,q0,pi0,tf,model,dtype,device)
+                
+                initial_time_solutions = time_lib.time()
+                
+                vec,t_eval,sol_scipy,sol_network = generate_solutions(vec,q0,pi0,tf,model,dtype,device)
+                
+                final_time_solutions = time_lib.time()
+                model.inference_time = (final_time_solutions-initial_time_solutions) / args.final_time
+                
+                if not os.path.isfile("supervisedNetworks/timingsInferecePer1s.txt"):
+                        open("supervisedNetworks/timingsInferecePer1s.txt", "w").close()
+                with open("supervisedNetworks/timingsInferecePer1s.txt", "a") as myfile:
+                    text = f"{model_path}, {ode_name}, {name_experiment}, final time={args.final_time}: {model.inference_time}\n"
+                    myfile.write(text)
+
 
             if args.plot_energy:
                 print("Plotting long time energy behaviour")
@@ -155,7 +168,6 @@ if __name__ == "__main__":
                     t_eval,
                     sol_scipy,
                     sol_network,
-                    sol_slimplectic=None,
                     is_supervised=True,
                     figure_path=figure_path
                 )
@@ -168,7 +180,6 @@ if __name__ == "__main__":
                     t_eval,
                     sol_scipy,
                     sol_network,
-                    sol_slimplectic=None,
                     is_supervised=True,
                     figure_path=figure_path+"orbits/"
                 )

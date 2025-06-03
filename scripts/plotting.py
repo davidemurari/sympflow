@@ -117,7 +117,7 @@ def plotErrors(t_eval,errors,name_experiment,ode_name,title_fig=None):
     else:
         pass
 
-def plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
+def plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
         
     plt.rcParams["figure.figsize"] = (2,2)
     back_colors = ["k","b","darkgreen","darkslategrey"]
@@ -166,7 +166,7 @@ def plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,s
         plt.savefig(f"{figure_path}/orbits/{title_fig}.pdf",bbox_inches='tight')
     
 
-def plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
+def plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
         
 
     plt.rcParams["figure.figsize"] = (6, 4.5)
@@ -237,7 +237,7 @@ def plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_
     else:
         plt.savefig(f"{figure_path}/solutions/{title_fig}.pdf",bbox_inches='tight')
 
-def plotLongTimeEnergy(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
+def plotLongTimeEnergy(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
     
     plt.rcParams["figure.figsize"] = (3,2)
 

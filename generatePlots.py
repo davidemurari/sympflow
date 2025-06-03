@@ -172,8 +172,11 @@ if __name__ == "__main__":
                 model.load_state_dict(torch.load(model_path,map_location=device),strict=False)
                 print("Model loaded correctly")
                 print("Generating the solutions")
+                
+                
                 q0,pi0,tf,dtype,device = system_parameters['q0'], system_parameters['pi0'], training_parameters['tf'], training_parameters['dtype'], training_parameters['device']
-                vec,t_eval,sol_scipy,sol_slimplectic,sol_network = generate_solutions(vec,q0,pi0,tf,model,dtype,device)
+                vec,t_eval,sol_scipy,sol_network = generate_solutions(vec,q0,pi0,tf,model,dtype,device)
+                
 
             if args.plot_loss:
                 print("Plotting the losses")      
@@ -190,9 +193,9 @@ if __name__ == "__main__":
 
             if args.plot_solutions:
                 print("Plotting the solutions")
-                plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None)
+                plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network)
                 if vec.ndim_spatial == 1:
-                    plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None)
+                    plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network)
 
             if args.plot_errors:
                 if vec.isa_doubled_variables_system:

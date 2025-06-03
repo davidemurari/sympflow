@@ -209,8 +209,26 @@ if __name__ == "__main__":
         + f"{ode_name}/{name_experiment}/trained_model_{timestamp}.pt",
     )
     
-    if not os.path.isfile("unsupervisedNetworks/timings.txt"):
-        open("unsupervisedNetworks/timings.txt", "w").close()
-    with open("unsupervisedNetworks/timings.txt", "a") as myfile:
+    ## Training time
+    if not os.path.isfile("unsupervisedNetworks/timingsTrainingPerEpoch.txt"):
+        open("unsupervisedNetworks/timingsTrainingPerEpoch.txt", "w").close()
+    with open("unsupervisedNetworks/timingsTrainingPerEpoch.txt", "a") as myfile:
         text = f"{timestamp}, {ode_name}, {name_experiment}, num_epochs={args.epochs}: {model.training_time}\n"
+        myfile.write(text)
+    
+    
+    ##Inference time
+    print("Testing the average inference cost")
+    initial_time_solutions = time_lib.time()
+    y0, _ = sample_ic(vec.system_parameters, vec, dtype, n_samples=100, dt=args.dt, factor=1.1, t0=0.)
+    for i in tqdm(range(len(y0))):
+        _,_ = approximate_solution(y0[i], model, time=[0,100], dtype=dtype, device=device)
+                
+    final_time_solutions = time_lib.time()
+    model.inference_time = (final_time_solutions-initial_time_solutions) / (args.final_time * len(y0)) #average per 100 initial conditions and over tf.
+    
+    if not os.path.isfile("unsupervisedNetworks/timingsInferecePer1s.txt"):
+            open("unsupervisedNetworks/timingsInferecePer1s.txt", "w").close()
+    with open("unsupervisedNetworks/timingsInferecePer1s.txt", "a") as myfile:
+        text = f"{timestamp}, {ode_name}, {name_experiment}: {model.inference_time}\n"
         myfile.write(text)
