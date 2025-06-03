@@ -1,0 +1,67 @@
+############################################################
+# pyproject.toml — self-contained build & dependency spec  #
+# Works with pip ≥ 23, Poetry, Hatch, PDM, etc.            #
+############################################################
+
+[build-system]
+# Tell pip how to build a wheel if/when we publish one.
+requires      = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+############################
+#  Project-level metadata  #
+############################
+[project]
+name            = "sympflow_experiments"
+version         = "0.1.0"
+description     = "SympFlow / PINN experiments"
+readme          = "README.md"
+requires-python = ">=3.10,<3.13"      # choose a Python that already has SciPy / Torch wheels
+
+# ---------- Runtime dependencies ----------
+dependencies = [
+  "numpy<2.0",
+  "scipy>=1.12.1,<1.14",   # 1.12.2 / 1.13.1 both ship cp312 wheels
+  "matplotlib==3.9.4",
+  "tqdm==4.67.1",
+  "ipykernel==6.29.5",
+  "ipython==8.12.3",
+]
+
+# ---------- Optional feature groups ----------
+[project.optional-dependencies]
+# Stable wheels (Python ≤ 3.12)
+torch = [
+  "torch==2.2.0"
+]
+
+# Nightly wheels (Python 3.13).  Replace the filename below with the one that
+# matches your OS / CUDA and the current nightly date if you choose this route.
+torch-nightly = [
+  "torch @ https://download.pytorch.org/whl/nightly/cpu/torch-2.8.0.dev202505XX-cp313-cp313-macosx_13_0_x86_64.whl"
+]
+
+# Development / lint / test helpers
+dev = [
+  "black>=24.4",
+  "pytest>=8",
+]
+
+
+#######################################
+#  Setuptools build configuration     #
+#######################################
+[tool.setuptools]
+# Flat-layout project: explicitly list every single-file module to avoid the
+# “Multiple top-level modules discovered” error.
+py-modules = [
+  "main",
+  "mainSupervised",
+  "generatePlots",
+  "generatePlotsSupervised",
+]
+
+# (If you later move code into src/fput_experiments/, switch to a ‘src-layout’
+# with `package-dir` + `packages.find`—see the setuptools docs.)
+
