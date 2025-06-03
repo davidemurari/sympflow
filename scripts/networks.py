@@ -47,6 +47,8 @@ class sympNet(nn.Module):
         self.dtype = dtype
         self.vec = vec
         self.dt = dt
+        self.training_time = 0.
+        self.inference_time = 0.
 
         activations = {
             "tanh": nn.Tanh(),
@@ -203,6 +205,8 @@ class genericNet(nn.Module):
             self.dtype = dtype
             self.vec = vec
             self.dt = dt
+            self.training_time = 0.
+            self.inference_time = 0.
             
             activations = {
                 "tanh": nn.Tanh(),

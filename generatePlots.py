@@ -162,8 +162,8 @@ if __name__ == "__main__":
                 
                 path = f"{settings.paths['model']}/{ode_name}/{name_experiment}"
                 model_path = get_last_trained_model(path) #it appends the latest time stamp
-                print(path)
-                if name_experiment=="pinn":
+                print(model_path)
+                if name_experiment=="pinnReg" or "pinnNoReg":
                     model = genericNet(model_parameters,vec=vec, dt=training_parameters['dt']) #Usual network
                 else:
                     model = sympNet(model_parameters,vec=vec, dt=training_parameters['dt']) #Symplectic network

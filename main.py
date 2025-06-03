@@ -80,8 +80,6 @@ if __name__ == "__main__":
         system_parameters = DampedHO_exp
     elif args.ode_name == "HenonHeiles":
         system_parameters = Henon_Heiles_exp
-    elif args.ode_name == "TwoBody":
-        system_parameters = Two_Body_exp
         
    
     # Initialise the vector field class according to the experiment
@@ -210,3 +208,9 @@ if __name__ == "__main__":
         settings.paths["model"]
         + f"{ode_name}/{name_experiment}/trained_model_{timestamp}.pt",
     )
+    
+    if not os.path.isfile("unsupervisedNetworks/timings.txt"):
+        open("unsupervisedNetworks/timings.txt", "w").close()
+    with open("unsupervisedNetworks/timings.txt", "a") as myfile:
+        text = f"{timestamp}, {ode_name}, {name_experiment}, num_epochs={args.epochs}: {model.training_time}\n"
+        myfile.write(text)
