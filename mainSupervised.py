@@ -18,6 +18,7 @@ import argparse
 parser = argparse.ArgumentParser(description="Supervised experiment")
 parser.add_argument("--ode_name", default="SimpleHO") #among HenonHeiles,SimpleHO,DampedHO
 parser.add_argument("--dt", default=1.0, type=float)
+parser.add_argument("--number_layers", default=5, type=int)
 parser.add_argument("--N", default=100, type=int)
 parser.add_argument("--M", default=50, type=int)
 parser.add_argument("--epsilon", default=0.0, type=float)
@@ -84,7 +85,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_parameters = dict(
     hidden_nodes=10,
     act_name="tanh",
-    nlayers=5,
+    nlayers=args.number_layers,
     device=device,
     dtype=dtype,
     d=vec.ndim_total,

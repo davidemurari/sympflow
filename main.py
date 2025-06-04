@@ -47,6 +47,7 @@ if __name__ == "__main__":
     parser.add_argument("--save_path", default="unsupervisedNetworks/")
     parser.add_argument("--ode_name", default="DampedHO")  # among HenonHeiles,SimpleHO,DampedHO
     parser.add_argument("--final_time", default=10.0, type=float)  # for the temporary plots while training
+    parser.add_argument("--number_layers", default=3, type=int)
     parser.add_argument("--epochs", default=50001, type=int)  # number of training epochs
     parser.add_argument("--dt", default=1.0, type=float)  # during the training procedure
     parser.add_argument("--name_experiment", default="pinnReg")  # among pinnReg,pinnNoReg,mixed,hamReg,noHamReg
@@ -60,6 +61,7 @@ if __name__ == "__main__":
     print(f"Delta t={args.dt}")
     print(f"Model under consideration: {args.name_experiment}")
     print(f"Number of training epochs: {args.epochs}")
+    print(f"Number of layers: {args.number_layers}")
     print("=================================================\n\n")
 
     # Domain details
@@ -80,6 +82,8 @@ if __name__ == "__main__":
         system_parameters = DampedHO_exp
     elif args.ode_name == "HenonHeiles":
         system_parameters = Henon_Heiles_exp
+    elif args.ode_name == "TwoBody":
+        system_parameters = Two_Body_exp
         
    
     # Initialise the vector field class according to the experiment
@@ -93,7 +97,7 @@ if __name__ == "__main__":
     model_parameters = dict(
         hidden_nodes=10,
         act_name="tanh",
-        nlayers=3,
+        nlayers=args.number_layers,
         device=device,
         dtype=dtype,
         d=vec.ndim_total
@@ -190,8 +194,11 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(
         model.parameters(), lr=training_parameters["lr"], weight_decay=0.0
     )
-    
+
+    timestamp = time_lib.strftime("%Y%m%d_%H%M%S")
+
     print("Training the model...")
+    initial_training_time = time_lib.time()
     Loss = trainModel(
         model,
         training_parameters,
@@ -201,8 +208,17 @@ if __name__ == "__main__":
         test_set=test_set,
         ode_name=ode_name
     )
+    final_training_time = time_lib.time()
+    model.training_time = (final_training_time-initial_training_time) / args.epochs
     timestamp = time_lib.strftime("%Y%m%d_%H%M%S")
 
+    torch.save(
+        model.state_dict(),
+        settings.paths["model"]
+        + f"{ode_name}/{name_experiment}/trained_model_{timestamp}.pt",
+    )
+    
+    ## Save model
     torch.save(
         model.state_dict(),
         settings.paths["model"]
@@ -213,9 +229,8 @@ if __name__ == "__main__":
     if not os.path.isfile("unsupervisedNetworks/timingsTrainingPerEpoch.txt"):
         open("unsupervisedNetworks/timingsTrainingPerEpoch.txt", "w").close()
     with open("unsupervisedNetworks/timingsTrainingPerEpoch.txt", "a") as myfile:
-        text = f"{timestamp}, {ode_name}, {name_experiment}, num_epochs={args.epochs}: {model.training_time}\n"
+        text = f"{timestamp}, {ode_name}, {name_experiment}, number_layers={args.number_layers}, num_epochs={args.epochs}: {model.training_time}\n"
         myfile.write(text)
-    
     
     ##Inference time
     print("Testing the average inference cost")

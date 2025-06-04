@@ -5,7 +5,6 @@ import time as time_lib
 from tqdm import tqdm
 from scripts.sampling import sample_ic
 import scripts.settings as settings
-import os
 
 torch.set_printoptions(precision=10)
 
@@ -24,8 +23,6 @@ def trainingSupervised(
         device='cpu',
         is_energy_reg=False
     ):
-    
-    initial_time = time_lib.time()
     
     for epoch in (pbar :=tqdm(range(num_epochs))):
         model.train()  # Set model to training mode
@@ -46,9 +43,6 @@ def trainingSupervised(
             if not scheduler==None:
                 scheduler.step()
         pbar.set_postfix_str(str(loss.item()))
-
-    final_time = time_lib.time()
-    model.training_time = (final_time-initial_time) / num_epochs
 
     print("Training complete.\n")
 
@@ -87,8 +81,6 @@ def trainModel(
 
     if not hasattr(model, "Hamiltonian") and (vec.isa_doubled_variables_system) and training_parameters["hamReg"]:
             print("\n\nThe Hamiltonian regularisation for MLPs with double variable systems is not implemented. The model will be trained without regularisation.\n\n")
-
-    initial_time = time_lib.time()
 
     for epoch in (pbar := tqdm(range(epochs))):
         
@@ -172,9 +164,6 @@ def trainModel(
         + f"tmpFiles/{ode_name}_{training_parameters['name_run']}_bestModel.pt"
     )
     model.load_state_dict(torch.load(path_best_model, map_location=device))
-
-    final_time = time_lib.time()
-    model.training_time = (final_time-initial_time) / epochs
 
     print("Training complete.\n")
     return Loss_history

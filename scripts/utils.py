@@ -202,7 +202,10 @@ def generate_solutions(vec,q0,pi0,tf,model,dtype,device):
     sol_network = sol_network.detach().cpu().numpy().T.squeeze()
     sol_scipy = solution_scipy(y0_np,t_eval=t_eval,vec=vec)
 
-    return vec,t_eval,sol_scipy,sol_network
+    sol_slimplectic = None
+    if(sol_slimplectic is not None): 
+        sol_slimplectic=np.array(sol_slimplectic).squeeze()
+    return vec,t_eval,sol_scipy,sol_slimplectic,sol_network
 
 
 def generate_test_set_unsupervised(args,system_parameters,training_parameters,vec):

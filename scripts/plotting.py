@@ -13,7 +13,7 @@ from scripts.experiments import *
 
 #Fixing the configuration for the plots
 plt.rcParams["figure.dpi"] = 300
-plt.rcParams["text.usetex"] = False
+plt.rcParams["text.usetex"] = True
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.size"] = 10
 
@@ -84,24 +84,24 @@ def plotErrors(t_eval,errors,name_experiment,ode_name,title_fig=None):
         fig = plt.figure()
         
         if len(errors["pinnReg"])>0:
-            plt.semilogy(t_eval,errors["pinnReg"],'-',c=colors[0])
-            plt.semilogy(t_eval[0],errors["pinnReg"][0],'-',c=colors[0],label="MLP with regularization")
+            plt.loglog(t_eval,errors["pinnReg"],'-',c=colors[0])
+            plt.loglog(t_eval[0],errors["pinnReg"][0],'-',c=colors[0],label="MLP with regularization")
         
         if len(errors["pinnNoReg"])>0:
-            plt.semilogy(t_eval,errors["pinnNoReg"],'-',c=colors[1])
-            plt.semilogy(t_eval[0],errors["pinnNoReg"][0],'-',c=colors[1],label="MLP just residual")
+            plt.loglog(t_eval,errors["pinnNoReg"],'-',c=colors[1])
+            plt.loglog(t_eval[0],errors["pinnNoReg"][0],'-',c=colors[1],label="MLP just residual")
         
         if len(errors["hamReg"])>0:
-            plt.semilogy(t_eval,errors["hamReg"],'-',c=colors[2])
-            plt.semilogy(t_eval[0],errors["hamReg"][0],'-',c=colors[2],label="SympFlow with regularization")
+            plt.loglog(t_eval,errors["hamReg"],'-',c=colors[2])
+            plt.loglog(t_eval[0],errors["hamReg"][0],'-',c=colors[2],label="SympFlow with regularization")
         
         if len(errors["noHamReg"])>0:
-            plt.semilogy(t_eval,errors["noHamReg"],'-',c=colors[3])
-            plt.semilogy(t_eval[0],errors["noHamReg"][0],'-',c=colors[3],label="SympFlow just residual")
+            plt.loglog(t_eval,errors["noHamReg"],'-',c=colors[3])
+            plt.loglog(t_eval[0],errors["noHamReg"][0],'-',c=colors[3],label="SympFlow just residual")
         
         if len(errors["mixed"])>0:
-            plt.semilogy(t_eval,errors["mixed"],'-',c=colors[4])
-            plt.semilogy(t_eval[0],errors["mixed"][0],'-',c=colors[4],label="SympFlow with mixed training procedure")
+            plt.loglog(t_eval,errors["mixed"],'-',c=colors[4])
+            plt.loglog(t_eval[0],errors["mixed"][0],'-',c=colors[4],label="SympFlow with mixed training procedure")
         
         timestamp = time_lib.strftime("%Y%m%d_%H%M%S") 
         
@@ -117,7 +117,7 @@ def plotErrors(t_eval,errors,name_experiment,ode_name,title_fig=None):
     else:
         pass
 
-def plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
+def plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
         
     plt.rcParams["figure.figsize"] = (2,2)
     back_colors = ["k","b","darkgreen","darkslategrey"]
@@ -166,7 +166,7 @@ def plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,i
         plt.savefig(f"{figure_path}/orbits/{title_fig}.pdf",bbox_inches='tight')
     
 
-def plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
+def plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
         
 
     plt.rcParams["figure.figsize"] = (6, 4.5)
@@ -237,7 +237,7 @@ def plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,is_s
     else:
         plt.savefig(f"{figure_path}/solutions/{title_fig}.pdf",bbox_inches='tight')
 
-def plotLongTimeEnergy(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
+def plotLongTimeEnergy(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
     
     plt.rcParams["figure.figsize"] = (3,2)
 
@@ -276,8 +276,8 @@ def plotLongTimeEnergy(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network
 
     E0 = vec.eval_hamiltonian(q0,pi0).reshape(-1)
 
-    plt.semilogy(t_eval,np.abs(vec.eval_hamiltonian(q_scipy,pi_scipy).reshape(-1)-E0),'r-',label="Energy ODE45")
-    plt.semilogy(t_eval,np.abs(vec.eval_hamiltonian(sol_network.T[:,:factor*d],sol_network.T[:,factor*d:]).reshape(-1)-E0),'c--',label="Energy Network")
+    plt.loglog(t_eval,np.abs(vec.eval_hamiltonian(q_scipy,pi_scipy).reshape(-1)-E0),'r-',label="Energy ODE45")
+    plt.loglog(t_eval,np.abs(vec.eval_hamiltonian(sol_network.T[:,:factor*d],sol_network.T[:,factor*d:]).reshape(-1)-E0),'c--',label="Energy Network")
 
     plt.legend()
     plt.ylabel(r"$|H(\psi_t(z_0))-H(z_0)|$")
