@@ -106,7 +106,7 @@ def plotErrors(t_eval,errors,name_experiment,ode_name,title_fig=None):
         timestamp = time_lib.strftime("%Y%m%d_%H%M%S") 
         
         plt.xlabel(r"$t$")
-        plt.ylabel(r"$\left\|\mathbf{z}_{\text{ref}}(t)-\mathbf{z}_{\text{net}}(t)\right\|_2$")
+        plt.ylabel(r"$\left\|\mathbf{z}_{\mathrm{ref}}(t)-\mathbf{z}_{\mathrm{net}}(t)\right\|_2$")
         plt.legend(ncol=2,bbox_to_anchor=(0.5,-0.3),loc='upper center')
         plt.title("Comparison of the errors")
         if title_fig==None:
