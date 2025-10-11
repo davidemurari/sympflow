@@ -219,7 +219,7 @@ class genericNet(nn.Module):
             self.act = activations[act_name]
             
             self.H = neurons
-            #### The dimensions here referes explicitly to the dimensions as seen by the network, i.e. the dimension of variable q
+            #### The dimensions here refers explicitly to the dimensions as seen by the network, i.e. the dimension of variable q
             #### So, if ndim_spatial = d and it is not double variables, then self.d = d, if it is double variables, then self.d = 2*d 
             self.d = d
             self.nlayers = nlayers
@@ -253,7 +253,8 @@ class genericNet(nn.Module):
                     res = self.act(self.linears[i](res))
             res = self.lastLinear(res)
             res = z + self.f(t) * res
-                
+            
+            #We enforce the physical limit if we are in a non-conservative system
             if self.vec.isa_doubled_variables_system:
               res= self.project_PL(res)
       

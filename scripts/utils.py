@@ -26,7 +26,7 @@ class vecField:
             self.is_double_variables = True
             self.m  = 1.0
             self.k  = 1.0
-            self.ll = 1e-2*np.sqrt(self.m*self.k)#1e-4*np.sqrt(self.m*self.k)  # ll is $\lambda$ in the paper
+            self.ll = 0.01 #Make sure it agrees with ll in experiments.py
                   
         elif system=="harmonic-oscillator":
             #Model parameters
@@ -38,20 +38,6 @@ class vecField:
             #Model parameters
             self.is_double_variables = False
             self.l = 1.
-        
-        elif system=="newtonian-radiation-reaction": # this name is missleading
-            G           = 6.67428e-11   #(in m^3/kg/s^2)
-            c           = 2.99792458e8  # (in m/s)
-            Msun_in_kg  = 1.98892e30
-            Msun_in_sec = G/c**3 * Msun_in_kg
-            
-            m1 = 1.4*Msun_in_sec
-            m2 = 1.4*Msun_in_sec
-            
-            self.M  = m1 + m2
-            self.nu = (m1*m2)/self.M**2
-            self.mu =  self.nu*self.M
-            self.is_double_variables = True
 
              
     def eval(self,x,pi):
@@ -104,18 +90,13 @@ class vecField:
             x = z[:,:d//2]
             pi  = z[:,d//2:]
             return torch.mean((self.eval(x,pi)-z_d)**2)
-        
-        elif self.system=="TwoBody":
-            #Conservative
-            x = z[:,:d//2]
-            pi = z[:,d//2:]
-            return torch.mean((self.eval(x,pi)-z_d)**2)
         else:
             print("Dynamics not implemented")
             
 
 def isSymplectic(model,device,dtype):
     #Checks if the model defines a symplectic map
+    #It is better to work in double precision here
     def map(y,t):
         return model(y.reshape(-1,model.d),t.reshape(-1,1))
     
@@ -163,7 +144,8 @@ def approximate_solution(y0, model, time, dtype, device):
         d = len(y0)
         dt = model.dt
 
-        tf = (tf//dt)*dt #to make sure we end at a multiple of dt
+        n_steps = int(round(tf / dt))          
+        tf      = n_steps * dt                 
 
         num_intervals = int((tf - t0) / dt) 
         ref_interval = torch.linspace(0, dt, 11, device=device)[1:]  # 10 sub-steps
@@ -191,10 +173,11 @@ def approximate_solution(y0, model, time, dtype, device):
 
 def generate_solutions(vec,q0,pi0,tf,model,dtype,device):
     y0 = torch.cat((q0,pi0))
-    
+        
     if vec.isa_doubled_variables_system:
         y0_np = torch.cat((q0[:vec.ndim_total//4],pi0[:vec.ndim_total//4])).detach().cpu().numpy()
     else: y0_np = y0.detach().cpu().numpy()
+   
     t_eval = np.linspace(0,tf,int(tf*10+1)) 
 
     sol_network, t_eval = approximate_solution(y0.to(device),model,t_eval,dtype,device)
@@ -212,8 +195,6 @@ def generate_test_set_unsupervised(args,system_parameters,training_parameters,ve
     if not os.path.exists("testSet"):
         os.mkdir("testSet")
     if args.ode_name=="DampedHO":
-        
-        
         
         if not os.path.exists(
             f"testSet/{system_parameters['vec_field_name']}_{str(vec.ll)}_z.csv"

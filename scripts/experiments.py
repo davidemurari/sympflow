@@ -9,7 +9,7 @@ dtype=torch.float32
 "Here we harcode the physical parameters for the different toy problems"
 
 
-###vec_field_name corrseponds to the name of the class in vector_field, corresponding to the system
+###vec_field_name corresponds to the name of the class in vector_field, corresponding to the system
 
 SimpleHO_exp = dict(
     system="harmonic-oscillator",
@@ -30,7 +30,7 @@ DampedHO_exp = dict(
     system="damped-harmonic-oscillator",
     m = 1.0,
     k = 1,
-    ll = 0.1,
+    ll = 0.01,
     qub= 1.2,
     qlb= -1.2,
     piub= 1.2,

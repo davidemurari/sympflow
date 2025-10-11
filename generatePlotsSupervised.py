@@ -76,7 +76,7 @@ if __name__ == "__main__":
     dtype=torch.float32
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-  
+    #Make sure that these parameters are the same as the ones used during training
     model_parameters = dict(
         hidden_nodes=10,
         act_name="tanh",

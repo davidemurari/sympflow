@@ -121,6 +121,7 @@ if __name__ == "__main__":
     dtype=torch.float32
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    #Make sure that the model parameters are consistent with those used during training
     model_parameters = dict(
         hidden_nodes = 10,
         act_name = 'tanh',
@@ -173,6 +174,7 @@ if __name__ == "__main__":
                 print("Model loaded correctly")
                 print("Generating the solutions")
                 q0,pi0,tf,dtype,device = system_parameters['q0'], system_parameters['pi0'], training_parameters['tf'], training_parameters['dtype'], training_parameters['device']
+                
                 vec,t_eval,sol_scipy,sol_slimplectic,sol_network = generate_solutions(vec,q0,pi0,tf,model,dtype,device)
 
             if args.plot_loss:

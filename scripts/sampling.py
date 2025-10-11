@@ -49,7 +49,7 @@ def generateDataSupervised(vec,system_parameters,dtype,N=1000,M=5,epsilon=0.):
         return np.concatenate([q_grad.squeeze(0).numpy(),p_grad.squeeze(0).numpy()],axis=0)
         
 
-    time_instants = 1.1*torch.sort(torch.rand(N,M), dim=1)[0]
+    time_instants = torch.sort(torch.rand(N,M), dim=1)[0]
     
     q = torch.rand((N, vec.ndim_spatial), dtype=dtype) * (qub - qlb) + qlb
     p = torch.rand((N, vec.ndim_spatial), dtype=dtype) * (piub - pilb) + pilb

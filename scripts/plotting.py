@@ -21,7 +21,7 @@ cwd = os.getcwd()
 torch.manual_seed(1)
 np.random.seed(1)
 dtype=torch.float32
-device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def plotLosses(training_loss,test_loss,name_experiment,ode_name,title_fig=None):
     

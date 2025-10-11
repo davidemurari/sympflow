@@ -82,8 +82,6 @@ if __name__ == "__main__":
         system_parameters = DampedHO_exp
     elif args.ode_name == "HenonHeiles":
         system_parameters = Henon_Heiles_exp
-    elif args.ode_name == "TwoBody":
-        system_parameters = Two_Body_exp
         
    
     # Initialise the vector field class according to the experiment

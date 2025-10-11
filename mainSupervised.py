@@ -66,7 +66,9 @@ print("Generating the data...")
 sol,time_instants = generateDataSupervised(vec,system_parameters,dtype,N,M,epsilon)
 print("Dataset generated.\n")
 
-_,d,_ = sol.shape
+print("Shape: ",sol.shape)
+
+_,d,M = sol.shape
 
 sol_flat = np.zeros((N*(M-1),2,d))
 t_flat = np.zeros((N*(M-1),1))
@@ -170,12 +172,12 @@ plt.savefig(f"supervisedNetworks/trainingData/training_data_{ode_name}_{timestam
 if name_experiment=="pinn":
     torch.save(
             model.state_dict(),
-            f"supervisedNetworks/savedModels/{ode_name}/pinn/trained_model_{timestamp}.pt",
+            f"supervisedNetworks/savedModels/{ode_name}/pinn/trained_model_eps_{args.epsilon}_N_{args.N}_M_{args.M}_{timestamp}.pt",
         )
 else:
     torch.save(
             model.state_dict(),
-            f"supervisedNetworks/savedModels/{ode_name}/sympflow/trained_model_{timestamp}.pt",
+            f"supervisedNetworks/savedModels/{ode_name}/sympflow/trained_model_eps_{args.epsilon}_N_{args.N}_M_{args.M}_{timestamp}.pt",
         )
 
 if not os.path.isfile("supervisedNetworks/timingsTrainingPerEpoch.txt"):
