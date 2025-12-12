@@ -1,6 +1,21 @@
 # SympFlow Project Code
 
-This repository contains the Python scripts, notebooks, for **“SympFlow”**.  
+This repository contains the Python scripts, notebooks, for **“SympFlow”**, a method introduced in the paper "Symplectic Neural Flows for Modeling and Discovery".
+
+```bibtex
+@misc{canizares2024symplectic,
+  title         = {Symplectic Neural Flows for Modeling and Discovery},
+  author        = {Canizares, Priscilla and Murari, Davide and Sch{\"o}nlieb, Carola-Bibiane and Sherry, Ferdia and Shumaylov, Zakhar},
+  year          = {2024},
+  eprint        = {2412.16787},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  doi           = {10.48550/arXiv.2412.16787},
+  url           = {https://arxiv.org/abs/2412.16787}
+}
+
+The contributors to this repository are: Davide Murari, Priscilla Canizares, Ferdia Sherry, and Zakhar Shumaylov.
+
 
 
 ---
