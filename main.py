@@ -18,6 +18,15 @@ import os
 from datetime import datetime
 
 def get_last_trained_model(path):
+    """Return the latest timestamped unsupervised checkpoint in a directory.
+
+    Inputs:
+        path (str): Directory containing files named ``trained_model_*.pt``.
+
+    Returns:
+        str | None: Path to the newest checkpoint, or ``None`` if parsing or
+        selection fails.
+    """
     # Get the list of all files matching the pattern
     files = glob.glob(os.path.join(path, "trained_model_*.pt"))
     # Function to extract the timestamp from the filename
@@ -50,6 +59,7 @@ if __name__ == "__main__":
     parser.add_argument("--number_layers", default=3, type=int)
     parser.add_argument("--epochs", default=50001, type=int)  # number of training epochs
     parser.add_argument("--dt", default=1.0, type=float)  # during the training procedure
+    parser.add_argument("--ll", default=None, type=float, help="Optional damping coefficient lambda for DampedHO.")
     parser.add_argument("--name_experiment", default="pinnReg")  # among pinnReg,pinnNoReg,mixed,hamReg,noHamReg
     args = parser.parse_args()
     
@@ -76,12 +86,7 @@ if __name__ == "__main__":
      if args.name_experiment in ["pinnNoReg","pinnReg","mixed","hamReg","noHamReg"]:
         print(f"\n Model under consideration: {args.name_experiment}\n")
     
-    if args.ode_name == "SimpleHO":
-        system_parameters = SimpleHO_exp
-    elif args.ode_name == "DampedHO":
-        system_parameters = DampedHO_exp
-    elif args.ode_name == "HenonHeiles":
-        system_parameters = Henon_Heiles_exp
+    system_parameters = get_system_parameters(args.ode_name, ll=args.ll)
         
    
     # Initialise the vector field class according to the experiment
@@ -235,7 +240,7 @@ if __name__ == "__main__":
     initial_time_solutions = time_lib.time()
     y0, _ = sample_ic(vec.system_parameters, vec, dtype, n_samples=100, dt=args.dt, factor=1.1, t0=0.)
     for i in tqdm(range(len(y0))):
-        _,_ = approximate_solution(y0[i], model, time=[0,100], dtype=dtype, device=device)
+        _,_ = approximate_solution(y0[i], model, t0=0.0, tf=100.0, dtype=dtype, device=device)
                 
     final_time_solutions = time_lib.time()
     model.inference_time = (final_time_solutions-initial_time_solutions) / (args.final_time * len(y0)) #average per 100 initial conditions and over tf.

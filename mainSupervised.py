@@ -22,6 +22,7 @@ parser.add_argument("--number_layers", default=5, type=int)
 parser.add_argument("--N", default=100, type=int)
 parser.add_argument("--M", default=50, type=int)
 parser.add_argument("--epsilon", default=0.0, type=float)
+parser.add_argument("--ll", default=None, type=float, help="Optional damping coefficient lambda for DampedHO.")
 parser.add_argument("--name_experiment", default="sympflow") #choose either pinn or sympflow
 parser.add_argument("--epochs", default=500, type=int)
 
@@ -49,12 +50,7 @@ while args.name_experiment not in ["pinn","sympflow"]:
 ode_name = args.ode_name
 dtype = torch.float32
 
-if ode_name=="DampedHO":
-    system_parameters = DampedHO_exp
-elif ode_name=="HenonHeiles":
-    system_parameters = Henon_Heiles_exp
-elif ode_name=="SimpleHO":
-        system_parameters = SimpleHO_exp 
+system_parameters = get_system_parameters(ode_name, ll=args.ll)
 
 vector_field_class = globals()[system_parameters["vec_field_name"]]
 vec = vector_field_class(system_parameters)

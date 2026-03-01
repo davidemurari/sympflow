@@ -117,7 +117,7 @@ def plotErrors(t_eval,errors,name_experiment,ode_name,title_fig=None):
     else:
         pass
 
-def plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
+def plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
         
     plt.rcParams["figure.figsize"] = (2,2)
     back_colors = ["k","b","darkgreen","darkslategrey"]
@@ -166,7 +166,7 @@ def plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,s
         plt.savefig(f"{figure_path}/orbits/{title_fig}.pdf",bbox_inches='tight')
     
 
-def plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
+def plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
         
 
     plt.rcParams["figure.figsize"] = (6, 4.5)
@@ -237,7 +237,7 @@ def plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_
     else:
         plt.savefig(f"{figure_path}/solutions/{title_fig}.pdf",bbox_inches='tight')
 
-def plotLongTimeEnergy(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
+def plotLongTimeEnergy(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,is_supervised=False,figure_path = "unsupervisedNetworks/figures/",title_fig=None):
     
     plt.rcParams["figure.figsize"] = (3,2)
 
@@ -275,12 +275,41 @@ def plotLongTimeEnergy(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network
         pi_scipy = np.concatenate((sol_scipy.T[:,d:],-sol_scipy.T[:,d:]),axis=1)
 
     E0 = vec.eval_hamiltonian(q0,pi0).reshape(-1)
+    is_damped = str(ode_name).startswith("DampedHO")
+    eps = np.finfo(float).tiny
+    mask_t = t_eval > 0
+    if np.any(mask_t):
+        t_plot = t_eval[mask_t]
+    else:
+        t_plot = t_eval
 
-    plt.loglog(t_eval,np.abs(vec.eval_hamiltonian(q_scipy,pi_scipy).reshape(-1)-E0),'r-',label="Energy ODE45")
-    plt.loglog(t_eval,np.abs(vec.eval_hamiltonian(sol_network.T[:,:factor*d],sol_network.T[:,factor*d:]).reshape(-1)-E0),'c--',label="Energy Network")
+    delta_h_ode45 = vec.eval_hamiltonian(q_scipy,pi_scipy).reshape(-1) - E0
+    delta_h_network = vec.eval_hamiltonian(sol_network.T[:,:factor*d],sol_network.T[:,factor*d:]).reshape(-1) - E0
+    if np.any(mask_t):
+        delta_h_ode45 = delta_h_ode45[mask_t]
+        delta_h_network = delta_h_network[mask_t]
+
+    if is_damped:
+        # For DampedHO, the doubled-variable Hamiltonian is identically zero on the
+        # projected physical manifold, so use signed physical-energy drift instead.
+        e_ref = vec.physical_energy(sol_scipy.T[:,:d],sol_scipy.T[:,d:]).reshape(-1)
+        e_net = vec.physical_energy(sol_network.T[:,:d],sol_network.T[:,2*d:2*d+d]).reshape(-1)
+        delta_e_ref = e_ref - e_ref[0]
+        delta_e_net = e_net - e_net[0]
+        if np.any(mask_t):
+            delta_e_ref = delta_e_ref[mask_t]
+            delta_e_net = delta_e_net[mask_t]
+        plt.semilogx(t_plot,delta_e_ref,'r-',label=r"$E_{\mathrm{ref}}(t)-E_{\mathrm{ref}}(0)$")
+        plt.semilogx(t_plot,delta_e_net,'c--',label=r"$E_{\mathrm{net}}(t)-E_{\mathrm{net}}(0)$")
+        plt.ylabel(r"$E(t)-E(0)$")
+    else:
+        h_ode45 = np.maximum(np.abs(delta_h_ode45), eps)
+        h_network = np.maximum(np.abs(delta_h_network), eps)
+        plt.loglog(t_plot,h_ode45,'r-',label=r"$|H_{\mathrm{ref}}(t)-H_{\mathrm{ref}}(0)|$")
+        plt.loglog(t_plot,h_network,'c--',label=r"$|H_{\mathrm{net}}(t)-H_{\mathrm{net}}(0)|$")
+        plt.ylabel(r"$|H(\psi_t(z_0))-H(z_0)|$")
 
     plt.legend()
-    plt.ylabel(r"$|H(\psi_t(z_0))-H(z_0)|$")
     plt.xlabel(r"$t$")
     plt.title(title)
     timestamp = time_lib.strftime("%Y%m%d_%H%M%S") 
@@ -297,10 +326,20 @@ def plotLongTimeEnergy(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network
         fig = plt.figure()
         E_ode45 = vec.physical_energy(sol_scipy.T[:,:d],sol_scipy.T[:,d:]).reshape(-1)
         E_network = vec.physical_energy(sol_network.T[:,:d],sol_network.T[:,2*d:2*d+d]).reshape(-1)
-        difference = np.abs(E_network-E_ode45) / np.diff(t_eval)[0]
-        plt.loglog(t_eval,difference,'r-',label="Relative energy variation")
+        if is_damped:
+            difference = E_network - E_ode45
+            if np.any(mask_t):
+                difference = difference[mask_t]
+            plt.semilogx(t_plot,difference,'r-',label=r"$E_{\mathrm{net}}(t)-E_{\mathrm{ref}}(t)$")
+            plt.ylabel(r"$E_{\mathrm{net}}(t)-E_{\mathrm{ref}}(t)$")
+        else:
+            difference = np.abs(E_network-E_ode45) / np.diff(t_eval)[0]
+            if np.any(mask_t):
+                difference = difference[mask_t]
+            difference = np.maximum(difference, eps)
+            plt.loglog(t_plot,difference,'r-',label=r"$|E_{\mathrm{net}}(t)-E_{\mathrm{ref}}(t)|/\Delta t$")
+            plt.ylabel(r"$E(\psi_t(z_0))$")
         plt.legend()
-        plt.ylabel(r"$E(\psi_t(z_0))$")
         plt.xlabel(r"$t$")
         plt.title(title)
         timestamp = time_lib.strftime("%Y%m%d_%H%M%S") 

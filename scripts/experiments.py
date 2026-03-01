@@ -1,5 +1,4 @@
-from abc import abstractmethod, ABC
-from math import sqrt
+from copy import deepcopy
 
 
 import torch
@@ -53,3 +52,25 @@ Henon_Heiles_exp = dict(
     pi0 = torch.tensor([0.3,0.15],dtype=dtype),
     vec_field_name = "HenonHeiles"
 )
+
+
+def get_system_parameters(ode_name: str, ll: float | None = None) -> dict:
+    """Return a copy of system parameters with optional damping override.
+
+    Inputs:
+    - ode_name: one of {"SimpleHO", "DampedHO", "HenonHeiles"}.
+    - ll: optional damping coefficient override (used only for DampedHO).
+
+    Returns:
+    - Dictionary of system parameters.
+    """
+    if ode_name == "SimpleHO":
+        return deepcopy(SimpleHO_exp)
+    if ode_name == "HenonHeiles":
+        return deepcopy(Henon_Heiles_exp)
+    if ode_name == "DampedHO":
+        params = deepcopy(DampedHO_exp)
+        if ll is not None:
+            params["ll"] = float(ll)
+        return params
+    raise ValueError(f"Unsupported ode_name '{ode_name}'. Expected one of: SimpleHO, DampedHO, HenonHeiles.")

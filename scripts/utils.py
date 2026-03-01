@@ -10,6 +10,8 @@ from scripts.sampling import sample_ic
 
 import sys
 
+SUBSTEPS_PER_DT = 10
+
 
 class vecField:
     def __init__(self,system="damped-harmonic-oscillator",d=4):
@@ -136,19 +138,15 @@ def solution_scipy(y0,t_eval,vec):
     res = solve_ivp(fun, t_span=t_span, t_eval=t_eval, y0=y0, method='RK45').y
     return res
 
-def approximate_solution(y0, model, time, dtype, device):
+def approximate_solution(y0, model, t0, tf, dtype, device):
     with torch.no_grad():
-
-        t0,tf = time[0], time[-1]
 
         d = len(y0)
         dt = model.dt
 
-        n_steps = int(round(tf / dt))          
-        tf      = n_steps * dt                 
-
-        num_intervals = int((tf - t0) / dt) 
-        ref_interval = torch.linspace(0, dt, 11, device=device)[1:]  # 10 sub-steps
+        num_intervals = int(np.ceil((tf - t0) / dt))
+        tf = t0 + num_intervals * dt
+        ref_interval = torch.linspace(0, dt, SUBSTEPS_PER_DT + 1, device=device)[1:]
         jump = len(ref_interval)
 
         # Total solution storage, starting with initial condition
@@ -178,17 +176,12 @@ def generate_solutions(vec,q0,pi0,tf,model,dtype,device):
         y0_np = torch.cat((q0[:vec.ndim_total//4],pi0[:vec.ndim_total//4])).detach().cpu().numpy()
     else: y0_np = y0.detach().cpu().numpy()
    
-    t_eval = np.linspace(0,tf,int(tf*10+1)) 
-
-    sol_network, t_eval = approximate_solution(y0.to(device),model,t_eval,dtype,device)
+    sol_network, t_eval = approximate_solution(y0.to(device), model, t0=0.0, tf=tf, dtype=dtype, device=device)
     t_eval = t_eval.detach().cpu().numpy()
     sol_network = sol_network.detach().cpu().numpy().T.squeeze()
     sol_scipy = solution_scipy(y0_np,t_eval=t_eval,vec=vec)
 
-    sol_slimplectic = None
-    if(sol_slimplectic is not None): 
-        sol_slimplectic=np.array(sol_slimplectic).squeeze()
-    return vec,t_eval,sol_scipy,sol_slimplectic,sol_network
+    return vec,t_eval,sol_scipy,sol_network
 
 
 def generate_test_set_unsupervised(args,system_parameters,training_parameters,vec):

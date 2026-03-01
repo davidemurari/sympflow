@@ -19,9 +19,14 @@ import glob
 import time as time_lib
 
 def get_poincare_section(orbit):
-    '''
-        Takes in an orbit (x,y,x_dot,y_dot) and spits out a Poincaré section (y,y_dot) as a tuple.
-    '''
+    """Extract a Poincare section from a 4D orbit by x-sign crossing.
+
+    Inputs:
+        orbit (array-like): Sequence ``(x, y, x_dot, y_dot)`` sampled in time.
+
+    Returns:
+        tuple[list[float], list[float]]: ``(y_poincare, y_dot_poincare)`` points.
+    """
         
     x, y, x_dot, y_dot = orbit[0], orbit[1], orbit[2], orbit[3]
 
@@ -35,6 +40,14 @@ def get_poincare_section(orbit):
     return y_poincare, y_dot_poincare
 
 def get_random_intial_conditons(energy):
+    """Sample one random initial condition on a fixed-energy shell.
+
+    Inputs:
+        energy (float): Target Hamiltonian energy level.
+
+    Returns:
+        np.ndarray: Initial state ``[q1, q2, p1, p2]``.
+    """
     result = False
     while not result:
         with np.errstate(invalid='raise'):
@@ -50,10 +63,16 @@ def get_random_intial_conditons(energy):
     return initial_state
 
 def solution_scipy(y0,t_eval,vec):
-    
-    #This method computes the approximate solution starting from y0
-    #over the time interval t_eval of the vector field vec using a BDF
-    #method from the Scipy library.
+    """Integrate the reference dynamics with SciPy on a given time grid.
+
+    Inputs:
+        y0 (array-like): Initial state.
+        t_eval (array-like): Time grid where the solution is evaluated.
+        vec: Vector-field object providing dynamics helpers.
+
+    Returns:
+        tuple[np.ndarray, np.ndarray]: ``(states, times)`` from SciPy solve.
+    """
     
     def fun(t,y):
         q,p = y[:vec.ndim_total//2],y[vec.ndim_total//2:]
@@ -73,6 +92,14 @@ def solution_scipy(y0,t_eval,vec):
     return res.y,res.t
 
 def get_last_trained_model(path):
+    """Return the latest timestamped checkpoint from a directory.
+
+    Inputs:
+        path (str): Directory containing ``trained_model_*.pt`` files.
+
+    Returns:
+        str: Path to the latest checkpoint.
+    """
     # Get the list of all files matching the pattern
     files = glob.glob(os.path.join(path, "trained_model_*.pt"))
 
@@ -87,6 +114,20 @@ def get_last_trained_model(path):
     return latest_file_name
 
 def approximate_solution(y0, model, t0, tf, fine_resolution, dtype, device):
+    """Roll out a model trajectory on a refined time grid.
+
+    Inputs:
+        y0 (torch.Tensor): Initial state vector.
+        model (torch.nn.Module): Trained model with ``dt`` attribute.
+        t0 (float): Initial time.
+        tf (float): Final time.
+        fine_resolution (int): Number of points per coarse interval.
+        dtype (torch.dtype): Tensor dtype.
+        device (torch.device): Execution device.
+
+    Returns:
+        tuple[torch.Tensor, torch.Tensor]: ``(solution, time_grid)``.
+    """
     with torch.no_grad():
 
         d = len(y0)

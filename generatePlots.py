@@ -5,6 +5,7 @@ import numpy as np
 import os
 import warnings
 import glob
+import re
 import sys
 
 from datetime import datetime
@@ -17,20 +18,41 @@ from scripts.plotting import *
 
 
 def get_last_trained_model(path):
+    """Return the newest model checkpoint in a directory.
+
+    Inputs:
+        path (str): Directory containing files matching ``trained_model*.pt``.
+
+    Returns:
+        str: Absolute/relative path of the latest checkpoint file.
+    """
     # Get the list of all files matching the pattern
-    files = glob.glob(os.path.join(path, "trained_model_*.pt"))
+    files = glob.glob(os.path.join(path, "trained_model*.pt"))
+    if not files:
+        raise FileNotFoundError(f"No checkpoint matching 'trained_model*.pt' in {path}")
 
     # Function to extract the timestamp from the filename
     def extract_timestamp(filename):
         basename = os.path.basename(filename)
-        timestamp_str = basename[len("trained_model_"):-len(".pt")]
-        return datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
+        match = re.search(r"(\d{8}_\d{6})(?=\.pt$)", basename)
+        if match:
+            return datetime.strptime(match.group(1), "%Y%m%d_%H%M%S")
+        return datetime.fromtimestamp(os.path.getmtime(filename))
 
     # Find the latest file by comparing timestamps
     latest_file_name = max(files, key=extract_timestamp)
     return latest_file_name
     
 def get_last_losses(path):
+    """Return the newest training and test loss files in a directory.
+
+    Inputs:
+        path (str): Directory containing ``TrainingLosses_*.txt`` and
+            ``TestLosses_*.txt``.
+
+    Returns:
+        tuple[str, str]: ``(latest_training_losses, latest_test_losses)`` paths.
+    """
     # Get the list of all files matching the pattern
     files = glob.glob(os.path.join(path, "TrainingLosses_*.txt"))
 
@@ -63,6 +85,8 @@ if __name__ == "__main__":
     parser.add_argument("--ode_name", default="HenonHeiles") #among HenonHeiles,SimpleHO,DampedHO
     parser.add_argument("--final_time", default=100.0, type=float)
     parser.add_argument("--dt", default=1.0, type=float)
+    parser.add_argument("--ll", default=None, type=float, help="Optional damping coefficient lambda for DampedHO.")
+    parser.add_argument("--number_layers", default=3, type=int, help="Number of layers of the model architecture to load.")
     parser.add_argument("--plot_loss", action='store_true')
     parser.add_argument("--plot_errors", action='store_true')
     parser.add_argument("--plot_solutions", action='store_true')
@@ -96,14 +120,11 @@ if __name__ == "__main__":
     if not os.path.exists(figure_path+"/energy/"):
         os.mkdir(figure_path+"/energy/")
     
-    if args.ode_name=="SimpleHO":
-        system_parameters = SimpleHO_exp
-    elif args.ode_name=="DampedHO":
-        system_parameters = DampedHO_exp
-    elif args.ode_name=="HenonHeiles":
-        system_parameters = Henon_Heiles_exp
-    else:
+    try:
+        system_parameters = get_system_parameters(args.ode_name, ll=args.ll)
+    except ValueError:
         warnings.warn("Dynamics not implemented.")
+        raise
      
     vector_field_class = globals()[system_parameters['vec_field_name']]
     vec = vector_field_class(system_parameters)
@@ -125,7 +146,7 @@ if __name__ == "__main__":
     model_parameters = dict(
         hidden_nodes = 10,
         act_name = 'tanh',
-        nlayers = 3,
+        nlayers = args.number_layers,
         device=device,
         dtype=dtype,
         d=vec.ndim_total
@@ -175,7 +196,7 @@ if __name__ == "__main__":
                 print("Generating the solutions")
                 q0,pi0,tf,dtype,device = system_parameters['q0'], system_parameters['pi0'], training_parameters['tf'], training_parameters['dtype'], training_parameters['device']
                 
-                vec,t_eval,sol_scipy,sol_slimplectic,sol_network = generate_solutions(vec,q0,pi0,tf,model,dtype,device)
+                vec,t_eval,sol_scipy,sol_network = generate_solutions(vec,q0,pi0,tf,model,dtype,device)
 
             if args.plot_loss:
                 print("Plotting the losses")      
@@ -192,9 +213,9 @@ if __name__ == "__main__":
 
             if args.plot_solutions:
                 print("Plotting the solutions")
-                plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None)
+                plotSolutions(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network)
                 if vec.ndim_spatial == 1:
-                    plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network,sol_slimplectic=None)
+                    plotSolutions_2d(vec,ode_name,name_experiment,t_eval,sol_scipy,sol_network)
 
             if args.plot_errors:
                 if vec.isa_doubled_variables_system:

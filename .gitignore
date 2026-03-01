@@ -12,3 +12,20 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Project-generated artifacts
+*.ipynb
+*.csv
+*.txt
+*.pt
+*.pdf
+
+# Build / packaging byproducts
+build/
+dist/
+*.egg-info/
+
+# Keep core docs/license trackable if needed
+!README.md
+!LICENSE
+!LICENSE.md
